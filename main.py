@@ -15,7 +15,6 @@ asyncio.set_event_loop(eventLoop)
 token = os.getenv("BOT_TOKEN")
 
 application = ApplicationBuilder().token(token).build()
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.PHOTO, receive_image))
 application.add_error_handler(error_handler)
