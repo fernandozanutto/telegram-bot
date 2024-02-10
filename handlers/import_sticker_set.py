@@ -1,6 +1,13 @@
 from telegram import Update, Sticker, InputSticker, constants
 from telegram.ext import ContextTypes
 import emoji
+import sqlite3
+import os
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+con = sqlite3.connect(os.path.join(path, '../db/bot.db'))
+cur = con.cursor()
 
 def map_sticker_to_input_sticker(sticker: Sticker) -> InputSticker:
     return InputSticker(
@@ -40,6 +47,14 @@ async def import_sticker_set(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
     else:
         result = True
+
+
+    params = (update.effective_message.from_user.id, new_name)
+    res = cur.execute("SELECT * FROM sticker_set WHERE user_id = ? AND sticker_set_name = ?", params)
+
+    if len(res.fetchall()) == 0:
+        cur.execute("INSERT INTO sticker_set VALUES (?, ?)", params)
+        con.commit()
 
     if result:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Stickers: t.me/addstickers/" + new_name)

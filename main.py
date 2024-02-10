@@ -10,6 +10,8 @@ from handlers.unknown_command import unknown
 from handlers.start import start
 from handlers.error import error_handler
 
+import caribou
+
 load_dotenv()
 
 token = os.getenv("BOT_TOKEN")
@@ -33,6 +35,10 @@ async def receive_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.remove(updated_path)
 
 if __name__ == '__main__':
+    db_path = 'db/bot.db'
+    migrations_path = 'db/migrations'
+    caribou.upgrade(db_path, migrations_path)
+    
     application = ApplicationBuilder().token(token).build()
     
     application.add_handler(CommandHandler("start", start))
