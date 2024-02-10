@@ -1,25 +1,18 @@
 from dotenv import load_dotenv
 import os
-import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from file_utils import resize_file
 
+from handlers.duck import duck
+from handlers.import_sticker_set import import_sticker_set
+from handlers.unknown_command import unknown
+from handlers.start import start
+from handlers.error import error_handler
 
 load_dotenv()
 
 token = os.getenv("BOT_TOKEN")
-
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
-
-async def duck(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Quack!")
 
 async def receive_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
@@ -42,14 +35,11 @@ async def receive_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == '__main__':
     application = ApplicationBuilder().token(token).build()
     
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler('duck', duck))
+    application.add_handler(MessageHandler(filters.PHOTO, receive_image))
+    application.add_handler(CommandHandler('import_sticker', import_sticker_set, has_args = True))
+    application.add_error_handler(error_handler)
+    application.add_handler(MessageHandler(filters.COMMAND, unknown))
 
-    image_handler = MessageHandler(
-        filters.PHOTO, receive_image
-    )
-    application.add_handler(image_handler)
-
-    
     application.run_polling()
